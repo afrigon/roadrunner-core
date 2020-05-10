@@ -3,7 +3,6 @@ use crate::world::{World, WorldCoordinate};
 
 use std::vec::Vec;
 
-#[derive(Default)]
 pub struct Game {
     world: World,
     players: Vec<Player>,

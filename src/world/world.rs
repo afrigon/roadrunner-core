@@ -1,26 +1,45 @@
 use crate::chunk::{Chunk, ChunkGrid, ChunkGridCoordinate, ChunkGroup};
 use crate::entity::Player;
-use crate::world::generation::WorldGenerator;
+use crate::world::generation::generate_chunk;
+use std::sync::mpsc::channel;
+use std::sync::mpsc::Receiver;
+use std::sync::mpsc::Sender;
+use std::thread;
 
 const LOAD_DISTANCE: i64 = 16;
 
-#[derive(Default)]
+type ChunkLoadingChannel = (Sender<Chunk>, Receiver<Chunk>);
+
 pub struct World {
     chunks: ChunkGrid,
-    generator: WorldGenerator,
+    chunk_loading_chan: ChunkLoadingChannel,
 }
 
 impl World {
+    pub fn new() -> Self {
+        World {
+            chunks: ChunkGrid::default(),
+            chunk_loading_chan: channel(),
+        }
+    }
+
     pub fn load_chunk(&mut self, coords: ChunkGridCoordinate) {
         if !self.chunks.contains_key(&coords) {
-            let mut chunk = Chunk::new(coords);
-            self.generator.generate_chunk(coords, &mut chunk);
-
-            self.chunks.insert(coords, chunk);
+            // start a generating thread for the chunk
+            let (sender, _) = &self.chunk_loading_chan;
+            let tx = sender.clone();
+            thread::spawn(move || tx.send(generate_chunk(coords)).unwrap());
         }
     }
 
     pub fn update(&mut self, players: &Vec<Player>) {
+        // get back chunks from generating thread
+        let (_, receiver) = &self.chunk_loading_chan;
+        match receiver.try_recv() {
+            Ok(chunk) => self.chunks.insert(chunk.coords, chunk),
+            Err(_) => None,
+        };
+
         // (un?)load chunks as the players move
         for player in players {
             let target_chunk = ChunkGridCoordinate::from_world_coordinate(player.position());
