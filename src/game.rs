@@ -9,6 +9,13 @@ pub struct Game {
 }
 
 impl Game {
+    pub fn new() -> Self {
+        Self {
+            world: World::new(),
+            players: Vec::new(),
+        }
+    }
+
     pub fn update(&mut self, time_delta: f64) {
         self.world.update(&self.players)
     }
