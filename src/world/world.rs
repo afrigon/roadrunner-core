@@ -40,8 +40,11 @@ impl World {
         // get back chunks from generating thread
         let (_, receiver) = &self.chunk_loading_chan;
         match receiver.try_recv() {
-            Ok(chunk) => self.chunks.insert(chunk.coords, chunk),
-            Err(_) => None,
+            Ok(chunk) => {
+                self.loading_chunks.remove(&chunk.coords);
+                self.chunks.insert(chunk.coords, chunk);
+            }
+            Err(_) => (),
         };
 
         // (un?)load chunks as the players move
