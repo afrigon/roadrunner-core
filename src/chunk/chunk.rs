@@ -1,5 +1,5 @@
-use crate::game::block::Block;
-//use crate::math::vector::v2;
+use crate::block::Block;
+use crate::chunk::ChunkGridCoordinate;
 
 pub const CHUNK_WIDTH: usize = 16;
 pub const CHUNK_DEPTH: usize = 16;
@@ -9,13 +9,14 @@ type Blocks = Vec<Vec<Vec<Block>>>;
 
 pub struct Chunk {
     pub blocks: Blocks,
+    pub coords: ChunkGridCoordinate,
 }
 
 impl Chunk {
-    pub fn new() -> Self {
+    pub fn new(coords: ChunkGridCoordinate) -> Self {
         Self {
-            //      position,
             blocks: vec![vec![vec![Block { id: 0 }; CHUNK_DEPTH]; CHUNK_HEIGHT]; CHUNK_HEIGHT],
+            coords,
         }
     }
 
