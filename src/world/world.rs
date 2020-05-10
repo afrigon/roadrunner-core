@@ -1,6 +1,7 @@
 use crate::chunk::{Chunk, ChunkGrid, ChunkGridCoordinate, ChunkGroup};
 use crate::entity::Player;
 use crate::world::generation::generate_chunk;
+use std::collections::HashSet;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
@@ -13,6 +14,7 @@ type ChunkLoadingChannel = (Sender<Chunk>, Receiver<Chunk>);
 pub struct World {
     chunks: ChunkGrid,
     chunk_loading_chan: ChunkLoadingChannel,
+    loading_chunks: HashSet<ChunkGridCoordinate>,
 }
 
 impl World {
@@ -20,15 +22,17 @@ impl World {
         World {
             chunks: ChunkGrid::default(),
             chunk_loading_chan: channel(),
+            loading_chunks: HashSet::new(),
         }
     }
 
     pub fn load_chunk(&mut self, coords: ChunkGridCoordinate) {
-        if !self.chunks.contains_key(&coords) {
+        if !self.loading_chunks.contains(&coords) && !self.chunks.contains_key(&coords) {
             // start a generating thread for the chunk
             let (sender, _) = &self.chunk_loading_chan;
             let tx = sender.clone();
             thread::spawn(move || tx.send(generate_chunk(coords)).unwrap());
+            self.loading_chunks.insert(coords);
         }
     }
 
