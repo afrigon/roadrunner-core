@@ -6,7 +6,11 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn get_position(&self) -> WorldCoordinate {
+    pub fn new(username: String, position: WorldCoordinate) -> Self {
+        Self { username, position }
+    }
+
+    pub fn position(&self) -> WorldCoordinate {
         self.position
     }
 }
