@@ -1,24 +1,14 @@
 use crate::block::BlockProperties;
 
 use std::collections::HashMap;
-use std::fs;
-use std::path::Path;
 
 pub struct BlockRegistry {
-    map: HashMap<u8, BlockProperties>,
+    data: HashMap<u8, BlockProperties>,
 }
 
 impl BlockRegistry {
-    pub fn new() -> Self {
-        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("res/data/blocks.json");
-        let path = path.to_str().unwrap();
-
-        let data =
-            fs::read_to_string(path).expect("<block_database> Could not read data from file");
-
-        Self {
-            map: serde_json::from_str(&data).unwrap(),
-        }
+    pub fn new(data: HashMap<u8, BlockProperties>) -> Self {
+        Self { data }
     }
 
     //pub fn get(&self, name: &str) -> Block {
@@ -26,7 +16,7 @@ impl BlockRegistry {
     //}
 
     pub fn get_properties(&self, id: u8) -> Option<&BlockProperties> {
-        self.map.get(&id)
+        self.data.get(&id)
     }
 
     //pub fn register(id: u8, properties: BlockProperties) {
