@@ -1,5 +1,5 @@
 [package]
-name = "minecraft-core"
+name = "roadrunner-core"
 version = "0.1.0"
 authors = ["Alexandre Frigon <alexandre.frigon.1@gmail.com>"]
 edition = "2018"
@@ -7,4 +7,8 @@ edition = "2018"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
-math = { git = "https://github.com/afrigon/roadrunner-math" }
+math = { git = "https://github.com/roadrunner-craft/math" }
+
+
+[lib]
+name = "core"
