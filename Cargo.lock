@@ -46,6 +46,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0dbbb57365263e881e805dc77d94697c9118fd94d8da011240555aa7b23445bd"
 
 [[package]]
+name = "core"
+version = "0.1.0"
+dependencies = [
+ "math",
+ "serde",
+]
+
+[[package]]
 name = "crossbeam-deque"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -199,7 +207,7 @@ checksum = "7d947cbb889ed21c2a84be6ffbaebf5b4e0f4340638cba0444907e38b56be084"
 [[package]]
 name = "math"
 version = "0.1.1"
-source = "git+https://github.com/afrigon/roadrunner-math#c7f2a7e3880cc1d55cb8331f2cb51119344ea338"
+source = "git+https://github.com/roadrunner-craft/math#c7f2a7e3880cc1d55cb8331f2cb51119344ea338"
 dependencies = [
  "noise",
 ]
@@ -217,14 +225,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b4fc2c02a7e374099d4ee95a193111f72d2110197fe200272371758f6c3643d8"
 dependencies = [
  "autocfg",
-]
-
-[[package]]
-name = "minecraft-core"
-version = "0.1.0"
-dependencies = [
- "math",
- "serde",
 ]
 
 [[package]]

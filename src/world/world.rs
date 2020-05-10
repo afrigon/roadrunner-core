@@ -1,26 +1,55 @@
 use crate::chunk::{Chunk, ChunkGrid, ChunkGridCoordinate, ChunkGroup};
 use crate::entity::Player;
-use crate::world::generation::WorldGenerator;
+use crate::utils::ThreadPool;
+use crate::world::generation::generate_chunk;
+use std::collections::HashSet;
+use std::sync::mpsc::channel;
+use std::sync::mpsc::Receiver;
+use std::sync::mpsc::Sender;
 
 const LOAD_DISTANCE: i64 = 16;
 
-#[derive(Default)]
+type ChunkLoadingChannel = (Sender<Chunk>, Receiver<Chunk>);
+
 pub struct World {
     chunks: ChunkGrid,
-    generator: WorldGenerator,
+    chunk_loading_chan: ChunkLoadingChannel,
+    threadpool: ThreadPool,
+    loading_chunks: HashSet<ChunkGridCoordinate>,
 }
 
 impl World {
-    pub fn load_chunk(&mut self, coords: ChunkGridCoordinate) {
-        if !self.chunks.contains_key(&coords) {
-            let mut chunk = Chunk::new(coords);
-            self.generator.generate_chunk(coords, &mut chunk);
+    pub fn new() -> Self {
+        World {
+            chunks: ChunkGrid::default(),
+            chunk_loading_chan: channel(),
+            loading_chunks: HashSet::new(),
+            threadpool: ThreadPool::new(8),
+        }
+    }
 
-            self.chunks.insert(coords, chunk);
+    pub fn load_chunk(&mut self, coords: ChunkGridCoordinate) {
+        if !self.loading_chunks.contains(&coords) && !self.chunks.contains_key(&coords) {
+            // start a generating thread for the chunk
+            let (sender, _) = &self.chunk_loading_chan;
+            let tx = sender.clone();
+            self.threadpool
+                .run(move || tx.send(generate_chunk(coords)).unwrap());
+            self.loading_chunks.insert(coords);
         }
     }
 
     pub fn update(&mut self, players: &Vec<Player>) {
+        // get back chunks from generating thread
+        let (_, receiver) = &self.chunk_loading_chan;
+        match receiver.try_recv() {
+            Ok(chunk) => {
+                self.loading_chunks.remove(&chunk.coords);
+                self.chunks.insert(chunk.coords, chunk);
+            }
+            Err(_) => (),
+        };
+
         // (un?)load chunks as the players move
         for player in players {
             let target_chunk = ChunkGridCoordinate::from_world_coordinate(player.position());

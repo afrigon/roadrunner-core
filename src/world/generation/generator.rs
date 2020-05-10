@@ -1,14 +1,20 @@
 use crate::block::Block;
 use crate::chunk::ChunkGridCoordinate;
 use crate::chunk::{Chunk, CHUNK_DEPTH, CHUNK_WIDTH};
-use crate::world::generation::HeightMap;
+use crate::world::generation::height_map::HeightMap;
 
 pub struct WorldGenerator {
     height_map: HeightMap,
 }
 
+pub fn generate_chunk(coords: ChunkGridCoordinate) -> Chunk {
+    let wg = WorldGenerator::default();
+    wg.generate_chunk(coords)
+}
+
 impl WorldGenerator {
-    pub fn generate_chunk(&self, coords: ChunkGridCoordinate, chunk: &mut Chunk) {
+    pub fn generate_chunk(&self, coords: ChunkGridCoordinate) -> Chunk {
+        let mut chunk = Chunk::new(coords);
         for x in 0..CHUNK_WIDTH {
             for z in 0..CHUNK_DEPTH {
                 let absx = x as i64 + coords.x * CHUNK_WIDTH as i64;
@@ -43,6 +49,7 @@ impl WorldGenerator {
                 }
             }
         }
+        chunk
     }
 }
 
