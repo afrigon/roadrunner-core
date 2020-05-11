@@ -82,4 +82,14 @@ mod tests {
             }
         })
     }
+
+    #[bench]
+    fn bench_flat_vec(b: &mut Bencher) {
+        b.iter(|| vec![Block { id: 0 }; CHUNK_SIZE]);
+    }
+
+    #[bench]
+    fn bench_nested_vec(b: &mut Bencher) {
+        b.iter(|| vec![vec![vec![Block { id: 0 }; CHUNK_DEPTH]; CHUNK_HEIGHT]; CHUNK_WIDTH]);
+    }
 }
