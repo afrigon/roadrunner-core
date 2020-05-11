@@ -39,7 +39,7 @@ impl World {
         }
     }
 
-    pub fn update(&mut self, position: WorldCoordinate) {
+    pub fn load_around(&mut self, positions: Vec<WorldCoordinate>) {
         // get back chunks from generating thread
         let (_, receiver) = &self.chunk_loading_chan;
         match receiver.try_recv() {
@@ -51,23 +51,23 @@ impl World {
         };
 
         // (un?)load chunks as the players move
-        let target_chunk = ChunkGridCoordinate::from_world_coordinate(position);
-        let is_near = |middle, point| -> bool {
-            (middle - LOAD_DISTANCE..middle + LOAD_DISTANCE).contains(&point)
-        };
+        let mut chunks_to_load = HashSet::new();
+        for position in positions {
+            let target_chunk = ChunkGridCoordinate::from_world_coordinate(position);
+            let xrange = target_chunk.x - LOAD_DISTANCE..target_chunk.x + LOAD_DISTANCE;
+            let zrange = target_chunk.z - LOAD_DISTANCE..target_chunk.z + LOAD_DISTANCE;
 
-        self.chunks.retain(|coord, _| {
-            is_near(target_chunk.x, coord.x) && is_near(target_chunk.z, coord.z)
-        });
-
-        let xrange = target_chunk.x - LOAD_DISTANCE..target_chunk.x + LOAD_DISTANCE;
-        let zrange = target_chunk.z - LOAD_DISTANCE..target_chunk.z + LOAD_DISTANCE;
-
-        for x in xrange {
-            for z in zrange.clone() {
-                let coords = ChunkGridCoordinate::new(x, z);
-                self.load_chunk(coords);
+            for x in xrange {
+                for z in zrange.clone() {
+                    chunks_to_load.insert(ChunkGridCoordinate::new(x, z));
+                }
             }
+        }
+
+        self.chunks
+            .retain(|coord, _| chunks_to_load.contains(coord));
+        for coord in chunks_to_load {
+            self.load_chunk(coord);
         }
     }
 
