@@ -15,7 +15,7 @@ pub struct Chunk {
 impl Chunk {
     pub fn new(coords: ChunkGridCoordinate) -> Self {
         Self {
-            blocks: vec![vec![vec![Block { id: 0 }; CHUNK_DEPTH]; CHUNK_HEIGHT]; CHUNK_HEIGHT],
+            blocks: vec![vec![vec![Block { id: 0 }; CHUNK_DEPTH]; CHUNK_HEIGHT]; CHUNK_WIDTH],
             coords,
         }
     }

@@ -7,7 +7,10 @@ use std::sync::mpsc::channel;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
-const LOAD_DISTANCE: i64 = 4;
+#[cfg(debug_assertions)]
+const LOAD_DISTANCE: i64 = 2;
+#[cfg(not(debug_assertions))]
+const LOAD_DISTANCE: i64 = 12;
 
 type ChunkLoadingChannel = (Sender<Chunk>, Receiver<Chunk>);
 

@@ -12,7 +12,7 @@ impl HeightMap {
         Self {
             height: (range.end - range.start) as f64,
             range,
-            noise: LayeredNoise::new(6, 75.0, 0.40, 1.87, seed),
+            noise: LayeredNoise::new(6, 45.0, 0.40, 1.87, seed),
         }
     }
 
