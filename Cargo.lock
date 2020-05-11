@@ -207,7 +207,6 @@ checksum = "7d947cbb889ed21c2a84be6ffbaebf5b4e0f4340638cba0444907e38b56be084"
 [[package]]
 name = "math"
 version = "0.1.1"
-source = "git+https://github.com/roadrunner-craft/math#c7f2a7e3880cc1d55cb8331f2cb51119344ea338"
 dependencies = [
  "noise",
 ]
