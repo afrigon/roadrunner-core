@@ -35,26 +35,29 @@ impl<'c> ChunkGroup<'c> {
         let y = y as usize;
 
         if x < 0 {
-            return Some(self.east?.get_blocks()[(x + CHUNK_WIDTH as i8) as usize][y][z as usize]);
+            return Some(
+                self.east?
+                    .block((x + CHUNK_WIDTH as i8) as usize, y, z as usize),
+            );
         }
 
         let x = x as usize;
 
         if z < 0 {
-            return Some(self.south?.get_blocks()[x][y][(z + CHUNK_DEPTH as i8) as usize]);
+            return Some(self.south?.block(x, y, (z + CHUNK_DEPTH as i8) as usize));
         }
 
         let z = z as usize;
 
         if x >= CHUNK_WIDTH {
-            return Some(self.west?.get_blocks()[x - CHUNK_WIDTH][y][z]);
+            return Some(self.west?.block(x - CHUNK_WIDTH, y, z));
         }
 
         if z >= CHUNK_DEPTH {
-            return Some(self.north?.get_blocks()[x][y][z - CHUNK_DEPTH]);
+            return Some(self.north?.block(x, y, z - CHUNK_DEPTH));
         }
 
-        return Some(self.current.get_blocks()[x][y][z]);
+        return Some(self.current.block(x, y, z));
     }
 }
 

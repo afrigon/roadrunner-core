@@ -28,28 +28,28 @@ impl WorldGenerator {
                 spent_in_height += now.elapsed();
 
                 for y in 0..5 {
-                    chunk.blocks[x][y][z] = Block { id: 7 };
+                    chunk.set_block(x, y, z, Block { id: 7 });
                 }
 
                 for y in 5..10 {
-                    chunk.blocks[x][y][z] = Block { id: 4 };
+                    chunk.set_block(x, y, z, Block { id: 4 });
                 }
 
                 for y in 10..(height - 3) {
-                    chunk.blocks[x][y][z] = Block { id: 1 };
+                    chunk.set_block(x, y, z, Block { id: 1 });
                 }
 
                 for y in (height - 3)..height {
                     let id = if height < 59 { 12 } else { 3 };
-                    chunk.blocks[x][y][z] = Block { id };
+                    chunk.set_block(x, y, z, Block { id });
                 }
 
                 let id = if height < 59 { 12 } else { 2 };
-                chunk.blocks[x][height][z] = Block { id };
+                chunk.set_block(x, height, z, Block { id });
 
                 if height < 58 {
                     for y in height..59 {
-                        chunk.blocks[x][y][z] = Block { id: 9 };
+                        chunk.set_block(x, y, z, Block { id: 9 });
                     }
                 }
             }
