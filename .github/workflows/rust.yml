@@ -14,6 +14,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build
-      run: cargo build --verbose --manifest-path ci/Cargo.toml
+      run: cargo build --verbose --manifest-path .github/Cargo.toml
     - name: Run tests
-      run: cargo test --verbose --manifest-path ci/Cargo.toml
+      run: cargo test --verbose --manifest-path .github/Cargo.toml
