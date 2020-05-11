@@ -1,18 +1,18 @@
 use crate::chunk::{Chunk, ChunkGrid, ChunkGridCoordinate, ChunkGroup};
-use crate::entity::Player;
 use crate::utils::ThreadPool;
 use crate::world::generation::generate_chunk;
+use crate::world::WorldCoordinate;
 use std::collections::HashSet;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
-const LOAD_DISTANCE: i64 = 16;
+const LOAD_DISTANCE: i64 = 4;
 
 type ChunkLoadingChannel = (Sender<Chunk>, Receiver<Chunk>);
 
 pub struct World {
-    chunks: ChunkGrid,
+    pub chunks: ChunkGrid,
     chunk_loading_chan: ChunkLoadingChannel,
     threadpool: ThreadPool,
     loading_chunks: HashSet<ChunkGridCoordinate>,
@@ -39,7 +39,7 @@ impl World {
         }
     }
 
-    pub fn update(&mut self, players: &Vec<Player>) {
+    pub fn update(&mut self, position: WorldCoordinate) {
         // get back chunks from generating thread
         let (_, receiver) = &self.chunk_loading_chan;
         match receiver.try_recv() {
@@ -51,24 +51,22 @@ impl World {
         };
 
         // (un?)load chunks as the players move
-        for player in players {
-            let target_chunk = ChunkGridCoordinate::from_world_coordinate(player.position());
-            let is_near = |middle, point| -> bool {
-                (middle - LOAD_DISTANCE..middle + LOAD_DISTANCE).contains(&point)
-            };
+        let target_chunk = ChunkGridCoordinate::from_world_coordinate(position);
+        let is_near = |middle, point| -> bool {
+            (middle - LOAD_DISTANCE..middle + LOAD_DISTANCE).contains(&point)
+        };
 
-            self.chunks.retain(|coord, _| {
-                is_near(target_chunk.x, coord.x) && is_near(target_chunk.z, coord.z)
-            });
+        self.chunks.retain(|coord, _| {
+            is_near(target_chunk.x, coord.x) && is_near(target_chunk.z, coord.z)
+        });
 
-            let xrange = target_chunk.x - LOAD_DISTANCE..target_chunk.x + LOAD_DISTANCE;
-            let zrange = target_chunk.z - LOAD_DISTANCE..target_chunk.z + LOAD_DISTANCE;
+        let xrange = target_chunk.x - LOAD_DISTANCE..target_chunk.x + LOAD_DISTANCE;
+        let zrange = target_chunk.z - LOAD_DISTANCE..target_chunk.z + LOAD_DISTANCE;
 
-            for x in xrange {
-                for z in zrange.clone() {
-                    let coords = ChunkGridCoordinate::new(x, z);
-                    self.load_chunk(coords);
-                }
+        for x in xrange {
+            for z in zrange.clone() {
+                let coords = ChunkGridCoordinate::new(x, z);
+                self.load_chunk(coords);
             }
         }
     }
