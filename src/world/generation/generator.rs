@@ -56,7 +56,7 @@ impl WorldGenerator {
 impl Default for WorldGenerator {
     fn default() -> Self {
         Self {
-            height_map: HeightMap::new(50..75, 12923874),
+            height_map: HeightMap::new(50..200, 12923874),
         }
     }
 }
