@@ -1,7 +1,9 @@
 use crate::chunk::{Chunk, ChunkGrid, ChunkGridCoordinate, ChunkGroup};
 use crate::utils::ThreadPool;
 use crate::world::generation::generate_chunk;
+use crate::world::generation::WorldSeed;
 use crate::world::WorldCoordinate;
+
 use std::collections::HashSet;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Receiver;
@@ -16,6 +18,7 @@ type ChunkLoadingChannel = (Sender<Chunk>, Receiver<Chunk>);
 
 pub struct World {
     pub chunks: ChunkGrid,
+    world_seed: WorldSeed,
     chunk_loading_chan: ChunkLoadingChannel,
     threadpool: ThreadPool,
     loading_chunks: HashSet<ChunkGridCoordinate>,
@@ -25,6 +28,7 @@ impl World {
     pub fn new() -> Self {
         World {
             chunks: ChunkGrid::default(),
+            world_seed: WorldSeed::new(),
             chunk_loading_chan: channel(),
             loading_chunks: HashSet::new(),
             threadpool: ThreadPool::new(8),
@@ -33,11 +37,13 @@ impl World {
 
     pub fn load_chunk(&mut self, coords: ChunkGridCoordinate) {
         if !self.loading_chunks.contains(&coords) && !self.chunks.contains_key(&coords) {
+            let seed = self.world_seed;
+
             // start a generating thread for the chunk
             let (sender, _) = &self.chunk_loading_chan;
             let tx = sender.clone();
             self.threadpool
-                .run(move || tx.send(generate_chunk(coords)).unwrap());
+                .run(move || tx.send(generate_chunk(coords, seed)).unwrap());
             self.loading_chunks.insert(coords);
         }
     }

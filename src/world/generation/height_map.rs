@@ -1,22 +1,31 @@
-use math::noise::LayeredNoise;
+use crate::utils::container::Area;
+
+use math::random::noise::NoiseFn;
 use std::ops::Range;
 
+pub struct HeightMapOptions {
+    pub area: Area,
+    pub range: Range<u8>,
+}
+
 pub struct HeightMap {
-    height: f64,
-    range: Range<u8>,
-    noise: LayeredNoise,
+    values: Vec<u8>,
+    options: HeightMapOptions,
 }
 
 impl HeightMap {
-    pub fn new(range: Range<u8>, seed: u32) -> Self {
+    pub fn new<N: NoiseFn<[i64; 2]>>(area: Area, range: Range<u8>, noise: N) -> Self {
+        let height = (range.end - range.start) as f64;
         Self {
-            height: (range.end - range.start) as f64,
-            range,
-            noise: LayeredNoise::new(6, 45.0, 0.40, 1.87, seed),
+            values: area
+                .into_iter()
+                .map(|(x, y)| (noise.get([x, y]) * height) as u8 + range.start)
+                .collect(),
+            options: HeightMapOptions { area, range },
         }
     }
 
-    pub fn get_height(&self, x: i64, z: i64) -> f64 {
-        self.noise.get(x, z) * self.height + self.range.start as f64
+    pub fn height(&self, x: u8, z: u8) -> u8 {
+        self.values[(x + z * self.options.area.width as u8) as usize]
     }
 }
