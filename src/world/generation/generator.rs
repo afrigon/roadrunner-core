@@ -77,8 +77,9 @@ impl WorldGenerator {
 
         let mut prng = Prng::new(chunk_seed.0);
         let noise = CombinedNoise::new(
-            LayeredNoiseOptions::new(6, 45.0, 0.40, 1.87, self.seed.0),
             LayeredNoiseOptions::new(4, 100.0, 0.50, 2.0, self.seed.0),
+            LayeredNoiseOptions::new(6, 60.0, 0.50, 1.9, self.seed.0),
+            10.0,
         );
         let height_map = HeightMap::new(area, 40..200, noise);
 
