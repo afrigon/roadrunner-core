@@ -65,14 +65,16 @@ impl World {
         for position in positions {
             let target_chunk = ChunkGridCoordinate::from_world_coordinate(position);
 
+            let mut loading_count: i64 = 0;
             for i in 0..=LOAD_DISTANCE {
                 for x in -i..=i {
                     for z in -i..=i {
                         let coords =
                             ChunkGridCoordinate::new(target_chunk.x + x, target_chunk.z + z);
                         if !self.chunks.contains_key(&coords) {
-                            if chunks_to_load.len() < (LOAD_DISTANCE * 2) as usize {
+                            if loading_count < LOAD_DISTANCE * 2 {
                                 chunks_to_load.insert(coords);
+                                loading_count += 1;
                             }
                         } else {
                             chunks_to_keep.insert(coords);
