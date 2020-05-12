@@ -36,8 +36,9 @@ impl World {
     }
 
     pub fn load_chunk(&mut self, coords: ChunkGridCoordinate) {
-        let seed = self.world_seed;
         if !self.loading_chunks.contains(&coords) && !self.chunks.contains_key(&coords) {
+            let seed = self.world_seed;
+
             // start a generating thread for the chunk
             let (sender, _) = &self.chunk_loading_chan;
             let tx = sender.clone();
