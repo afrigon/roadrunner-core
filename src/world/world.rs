@@ -14,8 +14,6 @@ pub const LOAD_DISTANCE: i64 = 2;
 #[cfg(not(debug_assertions))]
 pub const LOAD_DISTANCE: i64 = 12;
 
-const CHUNK_LOADING_LIMIT: usize = 16;
-
 type ChunkLoadingChannel = (Sender<Chunk>, Receiver<Chunk>);
 
 pub struct World {
@@ -73,7 +71,7 @@ impl World {
                         let coords =
                             ChunkGridCoordinate::new(target_chunk.x + x, target_chunk.z + z);
                         if !self.chunks.contains_key(&coords) {
-                            if chunks_to_load.len() < CHUNK_LOADING_LIMIT {
+                            if chunks_to_load.len() < (LOAD_DISTANCE * 2) as usize {
                                 chunks_to_load.insert(coords);
                             }
                         } else {
