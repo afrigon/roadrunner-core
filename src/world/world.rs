@@ -14,6 +14,8 @@ pub const LOAD_DISTANCE: i64 = 2;
 #[cfg(not(debug_assertions))]
 pub const LOAD_DISTANCE: i64 = 12;
 
+const CHUNK_LOADING_LIMIT: usize = 16;
+
 type ChunkLoadingChannel = (Sender<Chunk>, Receiver<Chunk>);
 
 pub struct World {
@@ -61,20 +63,34 @@ impl World {
 
         // (un?)load chunks as the players move
         let mut chunks_to_load = HashSet::new();
+        let mut chunks_to_keep = HashSet::new();
         for position in positions {
             let target_chunk = ChunkGridCoordinate::from_world_coordinate(position);
-            let xrange = target_chunk.x - LOAD_DISTANCE..target_chunk.x + LOAD_DISTANCE;
-            let zrange = target_chunk.z - LOAD_DISTANCE..target_chunk.z + LOAD_DISTANCE;
 
-            for x in xrange {
-                for z in zrange.clone() {
-                    chunks_to_load.insert(ChunkGridCoordinate::new(x, z));
+            for i in 0..=LOAD_DISTANCE {
+                //if chunks_to_load.len() != 0 {
+                //    break;
+                //}
+
+                for x in -i..=i {
+                    for z in -i..=i {
+                        let coords =
+                            ChunkGridCoordinate::new(target_chunk.x + x, target_chunk.z + z);
+                        if !self.chunks.contains_key(&coords) {
+                            if chunks_to_load.len() < CHUNK_LOADING_LIMIT {
+                                chunks_to_load.insert(coords);
+                            }
+                        } else {
+                            chunks_to_keep.insert(coords);
+                        }
+                    }
                 }
             }
+
+            self.chunks
+                .retain(|coords, _| chunks_to_keep.contains(coords));
         }
 
-        self.chunks
-            .retain(|coord, _| chunks_to_load.contains(coord));
         for coord in chunks_to_load {
             self.load_chunk(coord);
         }
