@@ -68,10 +68,6 @@ impl World {
             let target_chunk = ChunkGridCoordinate::from_world_coordinate(position);
 
             for i in 0..=LOAD_DISTANCE {
-                //if chunks_to_load.len() != 0 {
-                //    break;
-                //}
-
                 for x in -i..=i {
                     for z in -i..=i {
                         let coords =
