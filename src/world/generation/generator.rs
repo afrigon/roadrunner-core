@@ -1,62 +1,93 @@
 use crate::block::Block;
 use crate::chunk::ChunkGridCoordinate;
 use crate::chunk::{Chunk, CHUNK_DEPTH, CHUNK_WIDTH};
-use crate::world::generation::height_map::HeightMap;
+use crate::utils::container::Area;
+use crate::world::generation::HeightMap;
+use crate::world::generation::WorldSeed;
 
-pub struct WorldGenerator {
-    height_map: HeightMap,
+use math::random::noise::{CombinedNoise, LayeredNoiseOptions};
+use math::random::Prng;
+
+pub fn generate_chunk(coords: ChunkGridCoordinate, seed: WorldSeed) -> Chunk {
+    let generator = WorldGenerator::new(seed);
+    generator.generate_chunk(coords)
 }
 
-pub fn generate_chunk(coords: ChunkGridCoordinate) -> Chunk {
-    let wg = WorldGenerator::default();
-    wg.generate_chunk(coords)
+const BASE_BLOCK: Block = Block { id: 7 };
+const STONE_BLOCK: Block = Block { id: 1 };
+const DIRT_BLOCK: Block = Block { id: 3 };
+const GRASS_BLOCK: Block = Block { id: 2 };
+
+const BASE_THICKNESS: usize = 5;
+const BASE_FILL_DECREASE: f32 = 0.2;
+
+const MIN_DIRT_THICKNESS: usize = 3;
+const MAX_DIRT_THICKNESS: usize = 5;
+
+pub struct WorldGenerator {
+    seed: WorldSeed,
 }
 
 impl WorldGenerator {
-    pub fn generate_chunk(&self, coords: ChunkGridCoordinate) -> Chunk {
-        let mut chunk = Chunk::new(coords);
-        for x in 0..CHUNK_WIDTH {
-            for z in 0..CHUNK_DEPTH {
-                let absx = x as i64 + coords.x * CHUNK_WIDTH as i64;
-                let absz = z as i64 + coords.z * CHUNK_DEPTH as i64;
+    pub fn new(seed: WorldSeed) -> Self {
+        Self { seed }
+    }
 
-                let height = self.height_map.get_height(absx, absz) as usize;
-
-                for y in 0..5 {
-                    chunk.blocks[x][y][z] = Block { id: 7 };
-                }
-
-                for y in 5..10 {
-                    chunk.blocks[x][y][z] = Block { id: 4 };
-                }
-
-                for y in 10..(height - 3) {
-                    chunk.blocks[x][y][z] = Block { id: 1 };
-                }
-
-                for y in (height - 3)..height {
-                    let id = if height < 59 { 12 } else { 3 };
-                    chunk.blocks[x][y][z] = Block { id };
-                }
-
-                let id = if height < 59 { 12 } else { 2 };
-                chunk.blocks[x][height][z] = Block { id };
-
-                if height < 58 {
-                    for y in height..59 {
-                        chunk.blocks[x][y][z] = Block { id: 9 };
+    fn generate_base(&self, chunk: &mut Chunk, prng: &mut Prng) {
+        let mut value = 1.0;
+        for y in 0..BASE_THICKNESS {
+            for x in 0..CHUNK_WIDTH {
+                for z in 0..CHUNK_DEPTH {
+                    chunk.blocks[x][y][z] = if prng.next_f32() <= value {
+                        BASE_BLOCK
+                    } else {
+                        STONE_BLOCK
                     }
                 }
             }
-        }
-        chunk
-    }
-}
 
-impl Default for WorldGenerator {
-    fn default() -> Self {
-        Self {
-            height_map: HeightMap::new(50..200, 12923874),
+            value -= BASE_FILL_DECREASE;
         }
+    }
+
+    fn generate_strata(&self, chunk: &mut Chunk, prng: &mut Prng, height_map: &HeightMap) {
+        for x in 0..CHUNK_WIDTH {
+            for z in 0..CHUNK_DEPTH {
+                let height = height_map.height(x as u8, z as u8) as usize;
+
+                let dirt_thickness = prng.next_in_range(MIN_DIRT_THICKNESS..MAX_DIRT_THICKNESS + 1);
+                let dirt_height = height - dirt_thickness;
+
+                for y in BASE_THICKNESS..dirt_height {
+                    chunk.blocks[x][y][z] = STONE_BLOCK;
+                }
+
+                for y in dirt_height..height {
+                    chunk.blocks[x][y][z] = DIRT_BLOCK;
+                }
+
+                chunk.blocks[x][height][z] = GRASS_BLOCK;
+            }
+        }
+    }
+
+    pub fn generate_chunk(self, coords: ChunkGridCoordinate) -> Chunk {
+        let chunk_seed = self.seed.to_chunk_seed(coords);
+        let area = Area::new_chunk(coords);
+
+        let mut prng = Prng::new(chunk_seed.0);
+        let noise = CombinedNoise::new(
+            LayeredNoiseOptions::new(4, 100.0, 0.50, 2.0, self.seed.0),
+            LayeredNoiseOptions::new(6, 60.0, 0.50, 1.9, self.seed.0),
+            10.0,
+        );
+        let height_map = HeightMap::new(area, 40..200, noise);
+
+        let mut chunk = Chunk::new(coords);
+
+        self.generate_base(&mut chunk, &mut prng);
+        self.generate_strata(&mut chunk, &mut prng, &height_map);
+
+        chunk
     }
 }
