@@ -42,6 +42,7 @@ impl Chunk {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(feature = "nightly")]
     use test::Bencher;
 
     #[test]
@@ -70,6 +71,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "nightly")]
     #[bench]
     fn bench_at(b: &mut Bencher) {
         b.iter(|| {
@@ -84,11 +86,13 @@ mod tests {
         })
     }
 
+    #[cfg(feature = "nightly")]
     #[bench]
     fn bench_flat_vec(b: &mut Bencher) {
         b.iter(|| vec![Block { id: 0 }; CHUNK_SIZE]);
     }
 
+    #[cfg(feature = "nightly")]
     #[bench]
     fn bench_nested_vec(b: &mut Bencher) {
         b.iter(|| vec![vec![vec![Block { id: 0 }; CHUNK_DEPTH]; CHUNK_HEIGHT]; CHUNK_WIDTH]);
