@@ -13,3 +13,6 @@ math = { path = "../math" }
 
 [lib]
 name = "core"
+
+[features]
+nightly = []

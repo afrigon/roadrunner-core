@@ -38,10 +38,10 @@ impl WorldGenerator {
         for y in 0..BASE_THICKNESS {
             for x in 0..CHUNK_WIDTH {
                 for z in 0..CHUNK_DEPTH {
-                    chunk.blocks[x][y][z] = if prng.next_f32() <= value {
-                        BASE_BLOCK
+                    if prng.next_f32() <= value {
+                        chunk.set_block(x, y, z, BASE_BLOCK);
                     } else {
-                        STONE_BLOCK
+                        chunk.set_block(x, y, z, STONE_BLOCK);
                     }
                 }
             }
@@ -59,14 +59,14 @@ impl WorldGenerator {
                 let dirt_height = height - dirt_thickness;
 
                 for y in BASE_THICKNESS..dirt_height {
-                    chunk.blocks[x][y][z] = STONE_BLOCK;
+                    chunk.set_block(x, y, z, STONE_BLOCK);
                 }
 
                 for y in dirt_height..height {
-                    chunk.blocks[x][y][z] = DIRT_BLOCK;
+                    chunk.set_block(x, y, z, DIRT_BLOCK);
                 }
 
-                chunk.blocks[x][height][z] = GRASS_BLOCK;
+                chunk.set_block(x, height, z, GRASS_BLOCK);
             }
         }
     }
