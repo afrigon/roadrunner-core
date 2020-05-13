@@ -9,7 +9,8 @@ const CHUNK_SIZE: usize = CHUNK_WIDTH * CHUNK_DEPTH * CHUNK_HEIGHT;
 
 type Blocks = Vec<Block>;
 
-/// computes flat array index from a 3d coordinate using pre-computed lookup tables
+/// computes flat array index from a 3d coordinate
+#[inline]
 fn at(x: usize, y: usize, z: usize) -> usize {
     (x * CHUNK_WIDTH) + (y * CHUNK_HEIGHT) + z
 }
