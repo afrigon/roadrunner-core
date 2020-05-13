@@ -4,7 +4,7 @@ use std::convert::TryInto;
 
 use std::collections::HashMap;
 
-#[derive(PartialEq, Eq, Hash, Default, Copy, Clone, Debug)]
+#[derive(Ord, PartialOrd, PartialEq, Eq, Hash, Default, Copy, Clone, Debug)]
 pub struct ChunkGridCoordinate {
     pub x: i64,
     pub z: i64,

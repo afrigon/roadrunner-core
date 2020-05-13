@@ -1,13 +1,16 @@
 use crate::chunk::{Chunk, ChunkGrid, ChunkGridCoordinate, ChunkGroup};
-use crate::utils::ThreadPool;
 use crate::world::generation::generate_chunk;
 use crate::world::generation::WorldSeed;
 use crate::world::WorldCoordinate;
+use std::collections::BinaryHeap;
 
-use std::collections::HashSet;
+use std::collections::HashMap;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
+use std::sync::Arc;
+use std::sync::Mutex;
+use std::thread;
 
 #[cfg(debug_assertions)]
 pub const LOAD_DISTANCE: i64 = 2;
@@ -16,35 +19,41 @@ pub const LOAD_DISTANCE: i64 = 12;
 
 type ChunkLoadingChannel = (Sender<Chunk>, Receiver<Chunk>);
 
+#[derive(Ord, PartialOrd, Eq, PartialEq)]
+struct WeightedChunkGridCoordinate {
+    distance: usize,
+    coord: ChunkGridCoordinate,
+}
+
 pub struct World {
     pub chunks: ChunkGrid,
-    world_seed: WorldSeed,
     chunk_loading_chan: ChunkLoadingChannel,
-    threadpool: ThreadPool,
-    loading_chunks: HashSet<ChunkGridCoordinate>,
+    chunk_loading_queue: Arc<Mutex<BinaryHeap<WeightedChunkGridCoordinate>>>,
 }
 
 impl World {
     pub fn new() -> Self {
+        let world_seed = WorldSeed::new();
+        let chunk_loading_queue =
+            Arc::new(Mutex::new(BinaryHeap::<WeightedChunkGridCoordinate>::new()));
+        let c_queue = chunk_loading_queue.clone();
+        let (sender, receiver) = channel();
+        let tx = sender.clone();
+        thread::spawn(move || loop {
+            let msg = {
+                let mut lock = c_queue.lock().unwrap();
+                lock.pop()
+            };
+
+            match msg {
+                Some(chunk) => tx.send(generate_chunk(chunk.coord, world_seed)).unwrap(),
+                _ => (),
+            }
+        });
         World {
             chunks: ChunkGrid::default(),
-            world_seed: WorldSeed::new(),
-            chunk_loading_chan: channel(),
-            loading_chunks: HashSet::new(),
-            threadpool: ThreadPool::new(8),
-        }
-    }
-
-    pub fn load_chunk(&mut self, coords: ChunkGridCoordinate) {
-        if !self.loading_chunks.contains(&coords) && !self.chunks.contains_key(&coords) {
-            let seed = self.world_seed;
-
-            // start a generating thread for the chunk
-            let (sender, _) = &self.chunk_loading_chan;
-            let tx = sender.clone();
-            self.threadpool
-                .run(move || tx.send(generate_chunk(coords, seed)).unwrap());
-            self.loading_chunks.insert(coords);
+            chunk_loading_chan: (sender, receiver),
+            chunk_loading_queue,
         }
     }
 
@@ -53,14 +62,13 @@ impl World {
         let (_, receiver) = &self.chunk_loading_chan;
         match receiver.try_recv() {
             Ok(chunk) => {
-                self.loading_chunks.remove(&chunk.coords);
                 self.chunks.insert(chunk.coords, chunk);
             }
             Err(_) => (),
         };
 
         // (un?)load chunks as the players move
-        let mut chunks_to_load = HashSet::new();
+        let mut chunks_to_load = HashMap::<ChunkGridCoordinate, usize>::new();
         for position in positions {
             let target_chunk = ChunkGridCoordinate::from_world_coordinate(position);
             let xrange = target_chunk.x - LOAD_DISTANCE..target_chunk.x + LOAD_DISTANCE;
@@ -68,16 +76,40 @@ impl World {
 
             for x in xrange {
                 for z in zrange.clone() {
-                    chunks_to_load.insert(ChunkGridCoordinate::new(x, z));
+                    let coord = ChunkGridCoordinate::new(x, z);
+                    if let Some(new_dist) = coord.manhattan_distance_to(target_chunk) {
+                        if let Some(old_dist) = chunks_to_load.get(&coord) {
+                            if &new_dist < old_dist {
+                                chunks_to_load.insert(coord, std::usize::MAX - new_dist);
+                            }
+                        } else {
+                            chunks_to_load.insert(coord, std::usize::MAX - new_dist);
+                        }
+                    }
                 }
             }
         }
 
+        let _ = {
+            if let Ok(mut lock) = self.chunk_loading_queue.try_lock() {
+                println!("len(chunk_loading_queue) {}", lock.len());
+
+                lock.clear();
+                for (coord, distance) in &chunks_to_load {
+                    if !self.chunks.contains_key(coord) {
+                        lock.push(WeightedChunkGridCoordinate {
+                            coord: *coord,
+                            distance: *distance,
+                        });
+                    }
+                }
+            } else {
+                println!("didn't get lock");
+            }
+        };
+
         self.chunks
-            .retain(|coord, _| chunks_to_load.contains(coord));
-        for coord in chunks_to_load {
-            self.load_chunk(coord);
-        }
+            .retain(|coord, _| chunks_to_load.contains_key(coord));
     }
 
     pub fn get_chunk_group(&self, coords: ChunkGridCoordinate) -> ChunkGroup {
