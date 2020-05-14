@@ -2,6 +2,7 @@ use crate::chunk::Chunk;
 use crate::world::WorldCoordinate;
 
 use std::collections::HashMap;
+use std::convert::TryInto;
 
 #[derive(PartialEq, Eq, Hash, Default, Copy, Clone, Debug)]
 pub struct ChunkGridCoordinate {
@@ -19,6 +20,12 @@ impl ChunkGridCoordinate {
             x: (x / 16.0).floor() as i64,
             z: (z / 16.0).floor() as i64,
         }
+    }
+
+    pub fn manhattan_distance(&self, other: ChunkGridCoordinate) -> Option<usize> {
+        ((self.x - other.x).abs() + (self.z - other.z).abs())
+            .try_into()
+            .ok()
     }
 
     pub fn north(&self) -> ChunkGridCoordinate {
