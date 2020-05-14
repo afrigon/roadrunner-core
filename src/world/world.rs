@@ -18,7 +18,7 @@ type ChunkLoadingChannel = (Sender<Chunk>, Receiver<Chunk>);
 
 pub struct World {
     pub chunks: ChunkGrid,
-    pub meshes_to_regen: HashSet<ChunkGridCoordinate>,
+    pub chunk_updates: HashSet<ChunkGridCoordinate>,
     world_seed: WorldSeed,
     chunk_loading_chan: ChunkLoadingChannel,
     threadpool: ThreadPool,
@@ -29,7 +29,7 @@ impl World {
     pub fn new() -> Self {
         World {
             chunks: ChunkGrid::default(),
-            meshes_to_regen: HashSet::new(),
+            chunk_updates: HashSet::new(),
             world_seed: WorldSeed::new(),
             chunk_loading_chan: channel(),
             loading_chunks: HashSet::new(),
@@ -51,13 +51,17 @@ impl World {
     }
 
     pub fn load_around(&mut self, positions: Vec<WorldCoordinate>) {
+        self.chunk_updates.clear();
         // get back chunks from generating thread
         let (_, receiver) = &self.chunk_loading_chan;
         match receiver.try_recv() {
             Ok(chunk) => {
                 self.loading_chunks.remove(&chunk.coords);
+                self.chunk_updates.insert(chunk.coords);
                 for coord in chunk.coords.neighbours() {
-                    self.meshes_to_regen.insert(coord);
+                    if self.chunks.contains_key(&coord) {
+                        self.chunk_updates.insert(coord);
+                    }
                 }
                 self.chunks.insert(chunk.coords, chunk);
             }
