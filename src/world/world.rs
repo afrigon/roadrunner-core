@@ -74,7 +74,7 @@ impl World {
                             target_chunk.z + z as i64,
                         );
                         if !self.chunks.contains_key(&coords) {
-                            if counter < (LOAD_DISTANCE as u16 * 2).into() {
+                            if counter < LOAD_DISTANCE as u16 * 2 {
                                 chunks_to_load.insert(coords);
                                 counter += 1;
                             }
