@@ -94,8 +94,7 @@ impl World {
 
     pub fn get_chunk_group(&self, coords: ChunkGridCoordinate) -> ChunkGroup {
         ChunkGroup::new(
-            // TODO: handle the case where the current chunk is not in the hashmap
-            self.chunks.get(&coords).unwrap(),
+            self.chunks.get(&coords),
             self.chunks.get(&coords.north()),
             self.chunks.get(&coords.south()),
             self.chunks.get(&coords.east()),

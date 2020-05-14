@@ -2,7 +2,7 @@ use crate::block::Block;
 use crate::chunk::{Chunk, CHUNK_DEPTH, CHUNK_HEIGHT, CHUNK_WIDTH};
 
 pub struct ChunkGroup<'c> {
-    pub current: &'c Chunk,
+    pub middle: Option<&'c Chunk>,
     pub north: Option<&'c Chunk>,
     pub south: Option<&'c Chunk>,
     pub east: Option<&'c Chunk>,
@@ -11,20 +11,21 @@ pub struct ChunkGroup<'c> {
 
 impl<'c> ChunkGroup<'c> {
     pub fn new(
-        current: &'c Chunk,
+        middle: Option<&'c Chunk>,
         north: Option<&'c Chunk>,
         south: Option<&'c Chunk>,
         east: Option<&'c Chunk>,
         west: Option<&'c Chunk>,
     ) -> Self {
         Self {
-            current,
+            middle,
             north,
             south,
             east,
             west,
         }
     }
+
     pub fn get_block(&self, x: i8, y: i16, z: i8) -> Option<Block> {
         if y < 0 || y > CHUNK_HEIGHT as i16 {
             return None;
@@ -55,12 +56,12 @@ impl<'c> ChunkGroup<'c> {
             return Some(self.north?.block(x, y, z - CHUNK_DEPTH));
         }
 
-        return Some(self.current.block(x, y, z));
+        Some(self.middle?.block(x, y, z))
     }
 }
 
 impl<'c> IntoIterator for ChunkGroup<'c> {
-    type Item = Option<&'c Chunk>;
+    type Item = &'c Chunk;
     type IntoIter = ChunkGroupIterator<'c>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -77,16 +78,21 @@ pub struct ChunkGroupIterator<'c> {
 }
 
 impl<'c> Iterator for ChunkGroupIterator<'c> {
-    type Item = Option<&'c Chunk>;
+    type Item = &'c Chunk;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.index += 1;
-        match self.index {
-            1 => Some(self.group.north),
-            2 => Some(self.group.south),
-            3 => Some(self.group.east),
-            4 => Some(self.group.west),
-            _ => None,
+        for i in self.index..=5 {
+            match i {
+                1 if self.group.middle.is_some() => return self.group.middle,
+                2 if self.group.north.is_some() => return self.group.north,
+                3 if self.group.south.is_some() => return self.group.south,
+                4 if self.group.east.is_some() => return self.group.east,
+                5 if self.group.west.is_some() => return self.group.west,
+                _ => self.index = i + 1,
+            };
         }
+
+        None
     }
 }
