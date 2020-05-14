@@ -36,6 +36,11 @@ impl ChunkGridCoordinate {
     pub fn west(&self) -> ChunkGridCoordinate {
         ChunkGridCoordinate::new(self.x + 1, self.z)
     }
+
+    pub fn are_neighbours(left: &ChunkGridCoordinate, right: &ChunkGridCoordinate) -> bool {
+        ((left.x - right.x).abs() == 1 && left.z - right.z == 0)
+            || (left.x - right.x == 0 && (left.z - right.z).abs() == 1)
+    }
 }
 
 pub type ChunkGrid = HashMap<ChunkGridCoordinate, Chunk>;
