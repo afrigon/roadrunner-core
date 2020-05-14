@@ -101,7 +101,7 @@ impl World {
         }
     }
 
-    pub fn get_chunk_group(&self, coords: ChunkGridCoordinate) -> ChunkGroup {
+    pub fn chunk_group(&self, coords: ChunkGridCoordinate) -> ChunkGroup {
         ChunkGroup::new(
             self.chunks.get(&coords),
             self.chunks.get(&coords.north()),
