@@ -61,11 +61,10 @@ impl Iterator for ChunkGridNeighbourIterator {
     fn next(&mut self) -> Option<Self::Item> {
         self.index += 1;
         match self.index {
-            1 => Some(self.coord),
-            2 => Some(self.coord.north()),
-            3 => Some(self.coord.south()),
-            4 => Some(self.coord.east()),
-            5 => Some(self.coord.west()),
+            1 => Some(self.coord.north()),
+            2 => Some(self.coord.south()),
+            3 => Some(self.coord.east()),
+            4 => Some(self.coord.west()),
             _ => None,
         }
     }
