@@ -1,15 +1,14 @@
 use crate::chunk::ChunkGridCoordinate;
 
+use math::random::Seed;
 use std::num::Wrapping;
-use math::random::{Prng, Seed};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct WorldSeed(pub Seed);
 
 impl WorldSeed {
     pub fn new() -> Self {
-        let mut prng = Prng::new(Seed::new());
-        Self(Seed(prng.next_u32()))
+        Self(Seed::new())
     }
 
     pub fn to_chunk_seed(&self, coords: ChunkGridCoordinate) -> ChunkSeed {

@@ -3,7 +3,7 @@ use crate::chunk::ChunkGridCoordinate;
 
 pub const CHUNK_WIDTH: usize = 16;
 pub const CHUNK_DEPTH: usize = 16;
-pub const CHUNK_HEIGHT: usize = 256;
+pub const CHUNK_HEIGHT: usize = 255;
 
 const CHUNK_SIZE: usize = CHUNK_WIDTH * CHUNK_DEPTH * CHUNK_HEIGHT;
 

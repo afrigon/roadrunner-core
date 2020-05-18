@@ -1,10 +1,10 @@
 use crate::block::Block;
 use crate::chunk::ChunkGridCoordinate;
 use crate::chunk::{Chunk, CHUNK_DEPTH, CHUNK_WIDTH};
-use crate::utils::container::Area;
 use crate::world::generation::HeightMap;
 use crate::world::generation::WorldSeed;
 
+use math::container::Area;
 use math::random::noise::{CombinedNoise, LayeredNoiseOptions};
 use math::random::Prng;
 
@@ -73,7 +73,12 @@ impl WorldGenerator {
 
     pub fn generate_chunk(self, coords: ChunkGridCoordinate) -> Chunk {
         let chunk_seed = self.seed.to_chunk_seed(coords);
-        let area = Area::new_chunk(coords);
+        let area = Area::new(
+            coords.x * CHUNK_WIDTH as i64,
+            coords.z * CHUNK_DEPTH as i64,
+            CHUNK_WIDTH as i64,
+            CHUNK_DEPTH as i64,
+        );
 
         let mut prng = Prng::new(chunk_seed.0);
         let noise = CombinedNoise::new(

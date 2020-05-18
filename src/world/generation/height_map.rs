@@ -1,5 +1,4 @@
-use crate::utils::container::Area;
-
+use math::container::Area;
 use math::random::noise::NoiseFn;
 use std::ops::Range;
 
