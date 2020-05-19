@@ -10,9 +10,9 @@ use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 
 #[cfg(debug_assertions)]
-pub const LOAD_DISTANCE: i64 = 2;
+pub const LOAD_DISTANCE: u8 = 2;
 #[cfg(not(debug_assertions))]
-pub const LOAD_DISTANCE: i64 = 12;
+pub const LOAD_DISTANCE: u8 = 12;
 
 type ChunkLoadingChannel = (Sender<Chunk>, Receiver<Chunk>);
 
@@ -65,14 +65,16 @@ impl World {
         for position in positions {
             let target_chunk = ChunkGridCoordinate::from_world_coordinate(position);
 
-            let mut counter: i64 = 0;
-            for i in 0..=LOAD_DISTANCE {
+            let mut counter: u16 = 0;
+            for i in 0..=LOAD_DISTANCE as i16 {
                 for x in -i..=i {
                     for z in -i..=i {
-                        let coords =
-                            ChunkGridCoordinate::new(target_chunk.x + x, target_chunk.z + z);
+                        let coords = ChunkGridCoordinate::new(
+                            target_chunk.x + x as i64,
+                            target_chunk.z + z as i64,
+                        );
                         if !self.chunks.contains_key(&coords) {
-                            if counter < LOAD_DISTANCE * 2 {
+                            if counter < LOAD_DISTANCE as u16 * 2 {
                                 chunks_to_load.insert(coords);
                                 counter += 1;
                             }
