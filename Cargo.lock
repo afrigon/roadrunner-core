@@ -211,6 +211,7 @@ dependencies = [
  "noise",
  "rand_core 0.5.1",
  "rand_pcg",
+ "serde",
 ]
 
 [[package]]
