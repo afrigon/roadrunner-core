@@ -4,6 +4,7 @@ use crate::world::generation::generate_chunk;
 use crate::world::generation::WorldSeed;
 use crate::world::WorldCoordinate;
 
+use math::random::Seed;
 use std::collections::HashSet;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Receiver;
@@ -33,6 +34,20 @@ impl World {
             loading_chunks: HashSet::new(),
             threadpool: ThreadPool::new(8),
         }
+    }
+
+    pub fn from_seed(seed: Seed) -> Self {
+        World {
+            chunks: ChunkGrid::default(),
+            world_seed: WorldSeed(seed),
+            chunk_loading_chan: channel(),
+            loading_chunks: HashSet::new(),
+            threadpool: ThreadPool::new(8),
+        }
+    }
+
+    pub fn seed(&self) -> WorldSeed {
+        self.world_seed
     }
 
     pub fn load_chunk(&mut self, coords: ChunkGridCoordinate) {
