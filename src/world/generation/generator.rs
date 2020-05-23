@@ -18,6 +18,9 @@ const STONE_BLOCK: Block = Block { id: 1 };
 const DIRT_BLOCK: Block = Block { id: 3 };
 const GRASS_BLOCK: Block = Block { id: 2 };
 
+const LOG_BLOCK: Block = Block { id: 17 };
+const LEAVES_BLOCK: Block = Block { id: 18 };
+
 const BASE_THICKNESS: usize = 5;
 const BASE_FILL_DECREASE: f32 = 0.2;
 
@@ -71,7 +74,35 @@ impl WorldGenerator {
         }
     }
 
-    pub fn generate_chunk(self, coords: ChunkGridCoordinate) -> Chunk {
+    pub fn generate_tree(&self, x: usize, y: usize, z: usize, chunk: &mut Chunk, prng: &mut Prng) {
+        let height = prng.next_in_range(4..7);
+
+        chunk.set_block(x, y + height + 1, z, LEAVES_BLOCK);
+        chunk.set_block(x + 1, y + height + 1, z, LEAVES_BLOCK);
+        chunk.set_block(x - 1, y + height + 1, z, LEAVES_BLOCK);
+        chunk.set_block(x, y + height + 1, z + 1, LEAVES_BLOCK);
+        chunk.set_block(x, y + height + 1, z - 1, LEAVES_BLOCK);
+
+        for i in x - 1..=x + 1 {
+            for j in z - 1..=z + 1 {
+                chunk.set_block(i, y + height, j, LEAVES_BLOCK);
+            }
+        }
+
+        for i in x - 2..=x + 2 {
+            for j in z - 2..=z + 2 {
+                for k in y + height - 2..=y + height - 1 {
+                    chunk.set_block(i, k, j, LEAVES_BLOCK);
+                }
+            }
+        }
+
+        for i in y..y + height {
+            chunk.set_block(x, i, z, LOG_BLOCK);
+        }
+    }
+
+    pub fn generate_chunk(&self, coords: ChunkGridCoordinate) -> Chunk {
         let chunk_seed = self.seed.to_chunk_seed(coords);
         let area = Area::new(
             coords.x * CHUNK_WIDTH as i64,
@@ -86,12 +117,24 @@ impl WorldGenerator {
             LayeredNoiseOptions::new(6, 60.0, 0.50, 1.9, self.seed.0),
             10.0,
         );
-        let height_map = HeightMap::new(area, 40..200, noise);
+        //let height_map = HeightMap::new(area, 40..200, noise);
+        let height_map = HeightMap::new(area, 40..80, noise);
 
         let mut chunk = Chunk::new(coords);
 
         self.generate_base(&mut chunk, &mut prng);
         self.generate_strata(&mut chunk, &mut prng, &height_map);
+
+        // TODO: remove this draft
+        for x in 2..CHUNK_WIDTH - 2 {
+            for z in 2..CHUNK_DEPTH - 2 {
+                let y = height_map.height(x as u8, z as u8) + 1;
+
+                if prng.next_f32() > 0.96 {
+                    self.generate_tree(x as usize, y as usize, z as usize, &mut chunk, &mut prng);
+                }
+            }
+        }
 
         chunk
     }

@@ -1,6 +1,8 @@
 use crate::chunk::Chunk;
+use crate::chunk::{CHUNK_DEPTH, CHUNK_WIDTH};
 use crate::world::WorldCoordinate;
 
+use math::vector::Vector2;
 use std::collections::HashMap;
 use std::convert::TryInto;
 
@@ -19,6 +21,13 @@ impl ChunkGridCoordinate {
         Self {
             x: (x / 16.0).floor() as i64,
             z: (z / 16.0).floor() as i64,
+        }
+    }
+
+    pub fn abs(&self) -> Vector2 {
+        Vector2 {
+            x: CHUNK_WIDTH as f32 * self.x as f32,
+            y: CHUNK_DEPTH as f32 * self.z as f32,
         }
     }
 

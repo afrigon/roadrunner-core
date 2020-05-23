@@ -21,12 +21,13 @@ pub struct ChunkSeed(pub Seed);
 
 impl ChunkSeed {
     pub fn new(seed: &Seed, coords: ChunkGridCoordinate) -> Self {
-        let seed = Wrapping(seed.0);
-        let x = Wrapping(coords.x);
-        let z = Wrapping(coords.z);
-        let delta = Wrapping(((x * z).0 & 0xffffffff) as u32);
-        let value = (seed + delta).0;
+        // https://en.wikipedia.org/wiki/Pairing_function#Cantor_pairing_function
+        let k1 = Wrapping(coords.x as u64);
+        let k2 = Wrapping(coords.z as u64);
 
-        Self(Seed(value))
+        let value = Wrapping(((k1 + k2) * (k1 + k2 + Wrapping(1))).0 / 2) + k2;
+        let seed = Wrapping(seed.0 as u64);
+
+        Self(Seed(((seed + value).0 & 0xffffffff) as u32))
     }
 }

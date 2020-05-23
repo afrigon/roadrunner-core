@@ -6,6 +6,7 @@ pub struct BlockProperties {
     pub name: String,
     pub solid: bool,
     pub opaque: bool,
+    pub flora: bool,
     pub texture: BlockTextureProperties,
 }
 
@@ -15,6 +16,7 @@ impl Default for BlockProperties {
             name: String::from("minecraft:undefined"),
             solid: true,
             opaque: true,
+            flora: false,
             texture: BlockTextureProperties::default(),
         }
     }
