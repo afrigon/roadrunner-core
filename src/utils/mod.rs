@@ -1,3 +1,4 @@
+pub mod logging;
 mod spin_sleep;
 mod threadpool;
 

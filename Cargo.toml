@@ -9,6 +9,7 @@ edition = "2018"
 serde = { version = "1.0", features = ["derive"] }
 #math = { git = "https://github.com/roadrunner-craft/math" }
 math = { path = "../math" }
+log = { version = "0.4.8", features = ["std"] }
 
 
 [lib]
