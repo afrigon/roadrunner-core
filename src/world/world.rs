@@ -6,9 +6,7 @@ use crate::world::WorldCoordinate;
 
 use math::random::Seed;
 use std::collections::HashSet;
-use std::sync::mpsc::channel;
-use std::sync::mpsc::Receiver;
-use std::sync::mpsc::Sender;
+use std::sync::mpsc::{channel, Receiver, Sender};
 
 #[cfg(debug_assertions)]
 pub const LOAD_DISTANCE: u8 = 2;

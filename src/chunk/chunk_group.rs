@@ -25,6 +25,7 @@ impl<'c> ChunkGroup<'c> {
             west,
         }
     }
+
     pub fn get_block(&self, x: i8, y: i16, z: i8) -> Option<Block> {
         if y < 0 || y > CHUNK_HEIGHT as i16 {
             return None;

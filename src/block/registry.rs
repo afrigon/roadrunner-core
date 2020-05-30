@@ -17,9 +17,9 @@ impl BlockRegistry {
 
     pub fn is_opaque(&self, id: u8) -> bool {
         if let Some(p) = self.properties(id) {
-            return p.opaque;
+            p.opaque
         } else {
-            return false;
+            false
         }
     }
 }
