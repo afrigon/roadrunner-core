@@ -3,6 +3,8 @@ use log::{Level, Metadata, Record};
 use std::io::Write;
 use std::sync::Mutex;
 
+pub use log::{debug, info, warn, Log};
+
 pub struct Logger<W: Write + Send + Sync> {
     output: Mutex<W>,
 }
