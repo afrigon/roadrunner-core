@@ -6,7 +6,7 @@ use std::io::Write;
 use std::path::Path;
 use std::sync::Mutex;
 
-pub use log::{debug, info, warn, Log};
+pub use log::{debug, error, info, warn, Log};
 
 pub struct Logger<W: Write + Send + Sync> {
     output: Mutex<W>,
