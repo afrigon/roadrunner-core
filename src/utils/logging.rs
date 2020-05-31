@@ -1,6 +1,9 @@
 use log::LevelFilter;
 use log::{Level, Metadata, Record};
+use std::fs::File;
+use std::io::Stdout;
 use std::io::Write;
+use std::path::Path;
 use std::sync::Mutex;
 
 pub use log::{debug, info, warn, Log};
@@ -9,10 +12,7 @@ pub struct Logger<W: Write + Send + Sync> {
     output: Mutex<W>,
 }
 
-impl<W> log::Log for Logger<W>
-where
-    W: Write + Sync + Send,
-{
+impl<W: Write + Sync + Send> log::Log for Logger<W> {
     fn enabled(&self, metadata: &Metadata) -> bool {
         metadata.level() <= Level::Info
     }
@@ -27,14 +27,23 @@ where
     fn flush(&self) {}
 }
 
-impl<W> Logger<W>
-where
-    W: Write + Sync + Send,
-{
+impl<W: Write + Sync + Send> Logger<W> {
     pub fn new(output: W) -> Self {
         Self {
             output: Mutex::new(output),
         }
+    }
+}
+
+impl Logger<File> {
+    pub fn to_file<P: AsRef<Path>>(path: P) -> Self {
+        Logger::new(File::create(path).unwrap())
+    }
+}
+
+impl Logger<Stdout> {
+    pub fn to_stdout() -> Self {
+        Logger::new(std::io::stdout())
     }
 }
 
