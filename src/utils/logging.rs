@@ -11,7 +11,7 @@ pub struct Logger<W: Write + Send + Sync> {
     level: Level,
 }
 
-impl<W: Write + Sync + Send> log::Log for Logger<W> {
+impl<W: Write + Sync + Send> Log for Logger<W> {
     fn enabled(&self, metadata: &Metadata) -> bool {
         metadata.level() <= self.level
     }
@@ -48,15 +48,15 @@ impl Logger<Stdout> {
 }
 
 struct MultiLogger {
-    loggers: Vec<Box<dyn log::Log>>,
+    loggers: Vec<Box<dyn Log>>,
 }
 
-impl log::Log for MultiLogger {
-    fn enabled(&self, record: &log::Metadata<'_>) -> bool {
+impl Log for MultiLogger {
+    fn enabled(&self, record: &Metadata<'_>) -> bool {
         self.loggers.iter().any(|logger| logger.enabled(record))
     }
 
-    fn log(&self, record: &log::Record<'_>) {
+    fn log(&self, record: &Record<'_>) {
         self.loggers
             .iter()
             .filter(|logger| logger.enabled(record.metadata()))
@@ -68,7 +68,7 @@ impl log::Log for MultiLogger {
     }
 }
 
-pub fn init(loggers: Vec<Box<dyn log::Log>>) {
+pub fn init(loggers: Vec<Box<dyn Log>>) {
     log::set_boxed_logger(Box::new(MultiLogger { loggers: loggers })).unwrap();
     log::set_max_level(LevelFilter::Info);
 }
