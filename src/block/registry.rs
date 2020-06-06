@@ -2,6 +2,7 @@ use crate::block::BlockProperties;
 
 use std::collections::HashMap;
 
+#[derive(Clone)]
 pub struct BlockRegistry {
     data: HashMap<u8, BlockProperties>,
 }
@@ -17,9 +18,9 @@ impl BlockRegistry {
 
     pub fn is_opaque(&self, id: u8) -> bool {
         if let Some(p) = self.properties(id) {
-            return p.opaque;
+            p.opaque
         } else {
-            return false;
+            false
         }
     }
 }

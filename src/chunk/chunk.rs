@@ -15,6 +15,7 @@ fn at(x: usize, y: usize, z: usize) -> usize {
     (x * CHUNK_WIDTH) + (y * CHUNK_HEIGHT) + z
 }
 
+#[derive(Clone)]
 pub struct Chunk {
     blocks: Blocks,
     pub coords: ChunkGridCoordinate,
