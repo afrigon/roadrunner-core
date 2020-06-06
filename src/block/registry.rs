@@ -2,6 +2,7 @@ use crate::block::BlockProperties;
 
 use std::collections::HashMap;
 
+#[derive(Clone)]
 pub struct BlockRegistry {
     data: HashMap<u8, BlockProperties>,
 }

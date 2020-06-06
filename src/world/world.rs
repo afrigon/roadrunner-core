@@ -18,6 +18,8 @@ type ChunkLoadingChannel = (Sender<Chunk>, Receiver<Chunk>);
 pub struct World {
     pub chunks: ChunkGrid,
     world_seed: WorldSeed,
+
+    // threading
     chunk_loading_chan: ChunkLoadingChannel,
     threadpool: ThreadPool,
     loading_chunks: HashSet<ChunkGridCoordinate>,
@@ -61,6 +63,7 @@ impl World {
         }
     }
 
+    // TODO: add an update methode to remove this garbage code
     pub fn load_around(&mut self, positions: Vec<WorldCoordinate>) {
         // get back chunks from generating thread
         let (_, receiver) = &self.chunk_loading_chan;
@@ -79,7 +82,7 @@ impl World {
             let target_chunk = ChunkGridCoordinate::from_world_coordinate(position);
 
             let mut counter: u16 = 0;
-            for i in 0..=LOAD_DISTANCE as i16 {
+            for i in 0..=(LOAD_DISTANCE + 1) as i16 {
                 for x in -i..=i {
                     for z in -i..=i {
                         let coords = ChunkGridCoordinate::new(
@@ -87,7 +90,7 @@ impl World {
                             target_chunk.z + z as i64,
                         );
                         if !self.chunks.contains_key(&coords) {
-                            if counter < LOAD_DISTANCE as u16 * 2 {
+                            if counter < (LOAD_DISTANCE + 1) as u16 * 2 {
                                 chunks_to_load.insert(coords);
                                 counter += 1;
                             }
@@ -107,14 +110,13 @@ impl World {
         }
     }
 
-    pub fn get_chunk_group(&self, coords: ChunkGridCoordinate) -> ChunkGroup {
-        ChunkGroup::new(
-            // TODO: handle the case where the current chunk is not in the hashmap
-            self.chunks.get(&coords).unwrap(),
-            self.chunks.get(&coords.north()),
-            self.chunks.get(&coords.south()),
-            self.chunks.get(&coords.east()),
-            self.chunks.get(&coords.west()),
-        )
+    pub fn get_chunk_group(&self, coords: ChunkGridCoordinate) -> Option<ChunkGroup> {
+        let current = self.chunks.get(&coords)?.clone();
+        let north = self.chunks.get(&coords.north())?.clone();
+        let south = self.chunks.get(&coords.south())?.clone();
+        let east = self.chunks.get(&coords.east())?.clone();
+        let west = self.chunks.get(&coords.west())?.clone();
+
+        Some(ChunkGroup::new(current, north, south, east, west))
     }
 }
