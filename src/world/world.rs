@@ -9,7 +9,7 @@ use std::collections::HashSet;
 use std::sync::mpsc::{channel, Receiver, Sender};
 
 #[cfg(debug_assertions)]
-pub const LOAD_DISTANCE: u8 = 2;
+pub const LOAD_DISTANCE: u8 = 4;
 #[cfg(not(debug_assertions))]
 pub const LOAD_DISTANCE: u8 = 12;
 
