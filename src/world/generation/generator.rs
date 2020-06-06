@@ -20,6 +20,7 @@ const GRASS_BLOCK: Block = Block { id: 2 };
 
 const LOG_BLOCK: Block = Block { id: 17 };
 const LEAVES_BLOCK: Block = Block { id: 18 };
+const TALL_GRASS_BLOCK: Block = Block { id: 31 };
 
 const BASE_THICKNESS: usize = 5;
 const BASE_FILL_DECREASE: f32 = 0.2;
@@ -69,7 +70,11 @@ impl WorldGenerator {
                     chunk.set_block(x, y, z, DIRT_BLOCK);
                 }
 
-                chunk.set_block(x, height, z, GRASS_BLOCK);
+                if height < 62 {
+                    chunk.set_block(x, height, z, Block { id: 12 });
+                } else {
+                    chunk.set_block(x, height, z, GRASS_BLOCK);
+                }
             }
         }
     }
@@ -130,8 +135,28 @@ impl WorldGenerator {
             for z in 2..CHUNK_DEPTH - 2 {
                 let y = height_map.height(x as u8, z as u8) + 1;
 
+                if y <= 63 {
+                    continue;
+                }
+
                 if prng.next_f32() > 0.96 {
-                    self.generate_tree(x as usize, y as usize, z as usize, &mut chunk, &mut prng);
+                    self.generate_tree(x, y as usize, z, &mut chunk, &mut prng);
+                } else if prng.next_f32() > 0.96 {
+                    chunk.set_block(x, y as usize, z, TALL_GRASS_BLOCK);
+                } else if prng.next_f32() > 0.99 {
+                    chunk.set_block(x, y as usize, z, Block { id: 38 });
+                } else if prng.next_f32() > 0.99 {
+                    chunk.set_block(x, y as usize, z, Block { id: 37 });
+                }
+            }
+        }
+
+        for x in 0..CHUNK_WIDTH {
+            for z in 0..CHUNK_DEPTH {
+                let y = height_map.height(x as u8, z as u8) + 1;
+
+                for i in y..63 {
+                    chunk.set_block(x, i as usize, z, Block { id: 9 });
                 }
             }
         }
