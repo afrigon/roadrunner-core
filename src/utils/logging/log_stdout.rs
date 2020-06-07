@@ -31,8 +31,8 @@ impl LogStdOut {
 }
 
 impl Log for LogStdOut {
-    fn enabled(&self, record: &Metadata<'_>) -> bool {
-        record.level() <= self.level
+    fn enabled(&self, meta: &Metadata<'_>) -> bool {
+        meta.level() <= self.level
     }
 
     fn log(&self, record: &Record<'_>) {
@@ -40,9 +40,7 @@ impl Log for LogStdOut {
 
         // TIMESTAMP
         self.set_color(&mut lock, COLOR_TIMESTAMP);
-        let _ = lock.write(time_since_launched().as_bytes());
-
-        let _ = lock.write(b" ");
+        let _ = lock.write(format!("{} ", time_since_launched()).as_bytes());
 
         // LEVEL
         self.set_color(

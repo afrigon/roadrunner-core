@@ -1,8 +1,8 @@
 use log::{Level, Log, Metadata, Record};
 use std::fs;
-use std::io::Write;
 use std::path::Path;
 use std::path::PathBuf;
+use std::{io, io::Write};
 
 use crate::utils::time::{ms_since_epoch, time_since_launched};
 
@@ -27,7 +27,7 @@ fn log_path() -> PathBuf {
 }
 
 /// handle to the current log file, creating it if necessary
-fn log_file() -> fs::File {
+fn log_file() -> io::Result<fs::File> {
     let create_file = |_| {
         let _ = fs::create_dir_all(Path::new(LOG_DIR));
         fs::File::create(log_path())
@@ -36,14 +36,15 @@ fn log_file() -> fs::File {
         .append(true)
         .open(log_path())
         .or_else(create_file)
-        .unwrap()
 }
 
 /// save current log but only keep n most recent files
 fn rotate_logs() {
     // backup current log by timestamping it
     let new_file_path = Path::new(LOG_DIR).join(format!("{}.log", ms_since_epoch()));
-    let _ = fs::rename(log_path(), new_file_path);
+    if let Err(err) = fs::rename(log_path(), new_file_path) {
+        println!("ERROR: could not rotate log files - {}", err);
+    }
 
     // remove oldest log file
     let count = fs::read_dir(LOG_DIR).map(|dir| dir.count()).ok();
@@ -68,22 +69,28 @@ fn rotate_logs() {
 
 /// rotating file implementation for log
 impl Log for LogFile {
-    fn enabled(&self, record: &Metadata<'_>) -> bool {
-        record.level() <= self.level
+    fn enabled(&self, meta: &Metadata<'_>) -> bool {
+        meta.level() <= self.level
     }
 
     fn log(&self, record: &Record<'_>) {
-        let line = format!(
-            "[{}] - ({}): {}\n",
-            time_since_launched(),
-            record.level(),
-            record.args()
-        );
-        let mut file = log_file();
-        let _ = file.write(line.as_bytes());
-        let n = file.metadata().map(|metadata| metadata.len()).ok();
-        if n >= Some(MAX_LOG_SIZE) {
-            rotate_logs();
+        if let Ok(file) = log_file().as_mut() {
+            let data = format!(
+                "{} {}: {}\n",
+                time_since_launched(),
+                record.level(),
+                record.args()
+            );
+
+            let _ = file.write(data.as_bytes());
+
+            if let Ok(size) = file.metadata().map(|meta| meta.len()) {
+                if size >= MAX_LOG_SIZE {
+                    rotate_logs();
+                }
+            }
+        } else {
+            println!("ERROR: could not open log file");
         }
     }
 
