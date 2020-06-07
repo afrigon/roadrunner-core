@@ -89,3 +89,28 @@ impl Log for LogFile {
 
     fn flush(&self) {}
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn log_enabled_debug() {
+        let logger = LogFile::new(log::Level::Debug);
+        assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Error).build()));
+        assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Warn).build()));
+        assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Info).build()));
+        assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Debug).build()));
+        assert!(!logger.enabled(&log::Metadata::builder().level(log::Level::Trace).build()));
+    }
+
+    #[test]
+    fn log_enabled_error() {
+        let logger = LogFile::new(log::Level::Error);
+        assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Error).build()));
+        assert!(!logger.enabled(&log::Metadata::builder().level(log::Level::Warn).build()));
+        assert!(!logger.enabled(&log::Metadata::builder().level(log::Level::Info).build()));
+        assert!(!logger.enabled(&log::Metadata::builder().level(log::Level::Debug).build()));
+        assert!(!logger.enabled(&log::Metadata::builder().level(log::Level::Trace).build()));
+    }
+}

@@ -20,3 +20,25 @@ impl Log for MultiLogger {
         self.loggers.iter().for_each(|logger| logger.flush());
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::super::LogFile;
+    use super::super::LogStdOut;
+    use super::*;
+
+    #[test]
+    fn log_enabled() {
+        let logger = MultiLogger {
+            loggers: vec![
+                Box::new(LogFile::new(log::Level::Debug)),
+                Box::new(LogStdOut::new(log::Level::Info)),
+            ],
+        };
+        assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Error).build()));
+        assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Warn).build()));
+        assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Info).build()));
+        assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Debug).build()));
+        assert!(!logger.enabled(&log::Metadata::builder().level(log::Level::Trace).build()));
+    }
+}

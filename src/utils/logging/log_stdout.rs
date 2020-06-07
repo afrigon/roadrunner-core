@@ -47,3 +47,28 @@ impl Log for LogStdOut {
         lock.flush().unwrap();
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn log_enabled_info() {
+        let logger = LogStdOut::new(log::Level::Info);
+        assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Error).build()));
+        assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Warn).build()));
+        assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Info).build()));
+        assert!(!logger.enabled(&log::Metadata::builder().level(log::Level::Debug).build()));
+        assert!(!logger.enabled(&log::Metadata::builder().level(log::Level::Trace).build()));
+    }
+
+    #[test]
+    fn log_enabled_warn() {
+        let logger = LogStdOut::new(log::Level::Warn);
+        assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Error).build()));
+        assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Warn).build()));
+        assert!(!logger.enabled(&log::Metadata::builder().level(log::Level::Info).build()));
+        assert!(!logger.enabled(&log::Metadata::builder().level(log::Level::Debug).build()));
+        assert!(!logger.enabled(&log::Metadata::builder().level(log::Level::Trace).build()));
+    }
+}
