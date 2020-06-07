@@ -1,22 +1,32 @@
 use log::{Level, Log, Metadata, Record};
-use std::io::{stdout, Stdout, Write};
-use std::sync::Mutex;
+use std::io::Write;
 
-use colored::*;
+use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, StandardStreamLock, WriteColor};
 
 use crate::utils::time::time_since_launched;
 
+const COLOR_TIMESTAMP: Color = Color::Rgb(0x96, 0x96, 0x96);
+const COLOR_ERROR: Color = Color::Rgb(0xd1, 0x3d, 0x3d);
+const COLOR_WARN: Color = Color::Rgb(0xf5, 0xdb, 0x47);
+const COLOR_INFO: Color = Color::Rgb(0x47, 0x8d, 0xf5);
+const COLOR_DEBUG: Color = Color::Rgb(0x51, 0xc9, 0x4f);
+const COLOR_BODY: Color = Color::Rgb(0xff, 0xff, 0xff);
+
 pub struct LogStdOut {
-    stdout: Mutex<Stdout>,
+    stdout: StandardStream,
     level: Level,
 }
 
 impl LogStdOut {
     pub fn new(level: Level) -> Self {
         Self {
-            stdout: Mutex::new(stdout()),
+            stdout: StandardStream::stdout(ColorChoice::Always),
             level,
         }
+    }
+
+    fn set_color(&self, lock: &mut StandardStreamLock, color: Color) {
+        let _ = lock.set_color(ColorSpec::new().set_fg(Some(color)));
     }
 }
 
@@ -26,24 +36,37 @@ impl Log for LogStdOut {
     }
 
     fn log(&self, record: &Record<'_>) {
-        let mut lock = self.stdout.lock().unwrap();
-        let lvl = record.level().to_string();
-        let line = format!(
-            "[{}] - ({}): {}\n",
-            time_since_launched().cyan(),
+        let mut lock = self.stdout.lock();
+
+        // TIMESTAMP
+        self.set_color(&mut lock, COLOR_TIMESTAMP);
+        let _ = lock.write(time_since_launched().as_bytes());
+
+        let _ = lock.write(b" ");
+
+        // LEVEL
+        self.set_color(
+            &mut lock,
             match record.level() {
-                log::Level::Error => lvl.red(),
-                log::Level::Warn => lvl.yellow(),
-                log::Level::Info => lvl.green(),
-                _ => lvl.white(),
+                log::Level::Error => COLOR_ERROR,
+                log::Level::Warn => COLOR_WARN,
+                log::Level::Info => COLOR_INFO,
+                log::Level::Debug => COLOR_DEBUG,
+                _ => COLOR_BODY,
             },
-            record.args()
         );
-        lock.write(line.as_bytes()).unwrap();
+        let _ = lock.write(record.level().to_string().as_bytes());
+
+        // MESSAGE
+        self.set_color(&mut lock, COLOR_BODY);
+        let _ = lock.write(format!(": {}\n", record.args()).as_bytes());
+
+        // cleanup
+        let _ = lock.reset();
     }
 
     fn flush(&self) {
-        let mut lock = self.stdout.lock().unwrap();
+        let mut lock = self.stdout.lock();
         lock.flush().unwrap();
     }
 }
