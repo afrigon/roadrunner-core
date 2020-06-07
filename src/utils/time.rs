@@ -26,7 +26,7 @@ pub fn time_since(elapsed: Duration) -> String {
 
 /// formated time since program was started (to the millisecond)
 pub fn time_since_launched() -> String {
-    time_since(Instant::now() - *PROGRAM_START)
+    time_since(PROGRAM_START.elapsed())
 }
 
 #[cfg(test)]
