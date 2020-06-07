@@ -4,7 +4,7 @@ use std::sync::Mutex;
 
 use colored::*;
 
-use crate::utils::time::PROGRAM_START;
+use crate::utils::time::time_since_launched;
 
 pub struct LogStdOut {
     stdout: Mutex<Stdout>,
@@ -28,17 +28,9 @@ impl Log for LogStdOut {
     fn log(&self, record: &Record<'_>) {
         let mut lock = self.stdout.lock().unwrap();
         let lvl = record.level().to_string();
-        let elapsed = PROGRAM_START.elapsed();
         let line = format!(
             "[{}] - ({}): {}\n",
-            format!(
-                "{:02}h {:02}m {:02}s {:03}ms",
-                elapsed.as_secs() / 3600,
-                elapsed.as_secs() / 60,
-                elapsed.as_secs() % 60,
-                elapsed.subsec_millis()
-            )
-            .cyan(),
+            time_since_launched().cyan(),
             match record.level() {
                 log::Level::Error => lvl.red(),
                 log::Level::Warn => lvl.yellow(),

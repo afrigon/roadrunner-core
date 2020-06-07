@@ -12,3 +12,15 @@ pub fn ms_since_epoch() -> u128 {
         .unwrap()
         .as_micros()
 }
+
+/// formated time since program was started (to the millisecond)
+pub fn time_since_launched() -> String {
+    let elapsed = PROGRAM_START.elapsed();
+    format!(
+        "{:02}h {:02}m {:02}s {:03}ms",
+        elapsed.as_secs() / 3600,
+        elapsed.as_secs() / 60,
+        elapsed.as_secs() % 60,
+        elapsed.subsec_millis()
+    )
+}

@@ -4,7 +4,7 @@ use std::io::Write;
 use std::path::Path;
 use std::path::PathBuf;
 
-use crate::utils::time::{ms_since_epoch, PROGRAM_START};
+use crate::utils::time::{ms_since_epoch, time_since_launched};
 
 const LOG_DIR: &str = "logs/";
 const CURRENT_LOG: &str = "current.log";
@@ -74,8 +74,8 @@ impl Log for LogFile {
 
     fn log(&self, record: &Record<'_>) {
         let line = format!(
-            "[{:010}] - ({}): {}\n",
-            PROGRAM_START.elapsed().as_millis(),
+            "[{}] - ({}): {}\n",
+            time_since_launched(),
             record.level(),
             record.args()
         );
