@@ -3,7 +3,7 @@ use std::io::Write;
 
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, StandardStreamLock, WriteColor};
 
-use crate::utils::time::time_since_launched;
+use crate::utils::time::{timestamp_format, PROGRAM_START};
 
 const COLOR_TIMESTAMP: Color = Color::Rgb(0x96, 0x96, 0x96);
 const COLOR_ERROR: Color = Color::Rgb(0xd1, 0x3d, 0x3d);
@@ -40,7 +40,7 @@ impl Log for StdoutLogger {
 
         // TIMESTAMP
         self.set_color(&mut lock, COLOR_TIMESTAMP);
-        let _ = lock.write(format!("{} ", time_since_launched()).as_bytes());
+        let _ = lock.write(format!("{} ", timestamp_format(PROGRAM_START.elapsed())).as_bytes());
 
         // LEVEL
         self.set_color(

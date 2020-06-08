@@ -4,7 +4,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::{io, io::Write};
 
-use crate::utils::time::{ms_since_epoch, time_since_launched};
+use crate::utils::time::{duration_since_epoch, timestamp_format, PROGRAM_START};
 
 pub struct FileLoggerOptions {
     /// log directory
@@ -58,10 +58,10 @@ impl FileLogger {
     /// save current log but only keep n most recent files
     fn rotate_logs(&self) {
         // backup current log by timestamping it
-        let new_file_path =
-            Path::new(self.options.directory).join(format!("{}.log", ms_since_epoch()));
+        let new_file_path = Path::new(self.options.directory)
+            .join(format!("{}.log", duration_since_epoch().as_millis()));
         if let Err(err) = fs::rename(self.log_path(), new_file_path) {
-            println!("ERROR: could not rotate log files - {}", err);
+            panic!("could not rotate log files - {}", err);
         }
 
         // remove oldest log file
@@ -101,7 +101,7 @@ impl Log for FileLogger {
         if let Ok(file) = self.log_file().as_mut() {
             let data = format!(
                 "{} {}: {}\n",
-                time_since_launched(),
+                timestamp_format(PROGRAM_START.elapsed()),
                 record.level(),
                 record.args()
             );
