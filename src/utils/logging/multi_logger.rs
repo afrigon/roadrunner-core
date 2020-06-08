@@ -23,16 +23,15 @@ impl Log for MultiLogger {
 
 #[cfg(test)]
 mod tests {
-    use super::super::LogFile;
-    use super::super::LogStdOut;
     use super::*;
+    use crate::utils::logging::*;
 
     #[test]
     fn log_enabled() {
         let logger = MultiLogger {
             loggers: vec![
-                Box::new(LogFile::new(log::Level::Debug)),
-                Box::new(LogStdOut::new(log::Level::Info)),
+                Box::new(LogFile::new(Level::Debug, FileLoggerOptions::new("test"))),
+                Box::new(LogStdOut::new(Level::Info)),
             ],
         };
         assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Error).build()));

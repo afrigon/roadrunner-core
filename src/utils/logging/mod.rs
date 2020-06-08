@@ -3,7 +3,7 @@ pub mod log_stdout;
 pub mod multi_logger;
 
 pub use log::{debug, error, info, trace, warn, Level, Log};
-pub use log_file::LogFile;
+pub use log_file::{FileLoggerOptions, LogFile};
 pub use log_stdout::LogStdOut;
 
 pub fn init(loggers: Vec<Box<dyn Log>>) {
