@@ -12,12 +12,12 @@ const COLOR_INFO: Color = Color::Rgb(0x47, 0x8d, 0xf5);
 const COLOR_DEBUG: Color = Color::Rgb(0x51, 0xc9, 0x4f);
 const COLOR_BODY: Color = Color::Rgb(0xff, 0xff, 0xff);
 
-pub struct LogStdOut {
+pub struct StdoutLogger {
     stdout: StandardStream,
     level: Level,
 }
 
-impl LogStdOut {
+impl StdoutLogger {
     pub fn new(level: Level) -> Self {
         Self {
             stdout: StandardStream::stdout(ColorChoice::Always),
@@ -30,7 +30,7 @@ impl LogStdOut {
     }
 }
 
-impl Log for LogStdOut {
+impl Log for StdoutLogger {
     fn enabled(&self, meta: &Metadata<'_>) -> bool {
         meta.level() <= self.level
     }
@@ -75,7 +75,7 @@ mod tests {
 
     #[test]
     fn log_enabled_info() {
-        let logger = LogStdOut::new(log::Level::Info);
+        let logger = StdoutLogger::new(log::Level::Info);
         assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Error).build()));
         assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Warn).build()));
         assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Info).build()));
@@ -85,7 +85,7 @@ mod tests {
 
     #[test]
     fn log_enabled_warn() {
-        let logger = LogStdOut::new(log::Level::Warn);
+        let logger = StdoutLogger::new(log::Level::Warn);
         assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Error).build()));
         assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Warn).build()));
         assert!(!logger.enabled(&log::Metadata::builder().level(log::Level::Info).build()));

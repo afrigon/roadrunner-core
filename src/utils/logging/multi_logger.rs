@@ -30,8 +30,11 @@ mod tests {
     fn log_enabled() {
         let logger = MultiLogger {
             loggers: vec![
-                Box::new(LogFile::new(Level::Debug, FileLoggerOptions::new("test"))),
-                Box::new(LogStdOut::new(Level::Info)),
+                Box::new(FileLogger::new(
+                    Level::Debug,
+                    FileLoggerOptions::new("test"),
+                )),
+                Box::new(StdoutLogger::new(Level::Info)),
             ],
         };
         assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Error).build()));

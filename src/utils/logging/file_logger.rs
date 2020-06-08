@@ -28,12 +28,12 @@ impl FileLoggerOptions {
     }
 }
 
-pub struct LogFile {
+pub struct FileLogger {
     level: Level,
     options: FileLoggerOptions,
 }
 
-impl LogFile {
+impl FileLogger {
     pub fn new(level: Level, options: FileLoggerOptions) -> Self {
         Self { level, options }
     }
@@ -92,7 +92,7 @@ impl LogFile {
 }
 
 /// rotating file implementation for log
-impl Log for LogFile {
+impl Log for FileLogger {
     fn enabled(&self, meta: &Metadata<'_>) -> bool {
         meta.level() <= self.level
     }
@@ -127,7 +127,7 @@ mod tests {
 
     #[test]
     fn log_enabled_debug() {
-        let logger = LogFile::new(log::Level::Debug, FileLoggerOptions::new("test"));
+        let logger = FileLogger::new(log::Level::Debug, FileLoggerOptions::new("test"));
         assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Error).build()));
         assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Warn).build()));
         assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Info).build()));
@@ -137,7 +137,7 @@ mod tests {
 
     #[test]
     fn log_enabled_error() {
-        let logger = LogFile::new(log::Level::Error, FileLoggerOptions::new("test"));
+        let logger = FileLogger::new(log::Level::Error, FileLoggerOptions::new("test"));
         assert!(logger.enabled(&log::Metadata::builder().level(log::Level::Error).build()));
         assert!(!logger.enabled(&log::Metadata::builder().level(log::Level::Warn).build()));
         assert!(!logger.enabled(&log::Metadata::builder().level(log::Level::Info).build()));
