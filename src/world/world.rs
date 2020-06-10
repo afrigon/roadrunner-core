@@ -74,8 +74,6 @@ impl World {
             received_chunks += 1;
         }
 
-        println!("received {} chunks", received_chunks);
-
         // (un?)load chunks as the players move
         let mut chunks_to_load = HashSet::new();
         let mut chunks_to_keep = HashSet::new();
