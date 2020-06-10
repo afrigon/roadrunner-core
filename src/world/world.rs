@@ -32,7 +32,7 @@ impl World {
             world_seed: WorldSeed::new(),
             chunk_loading_chan: channel(),
             loading_chunks: HashSet::new(),
-            threadpool: ThreadPool::new(8),
+            threadpool: ThreadPool::new(1),
         }
     }
 
@@ -42,7 +42,7 @@ impl World {
             world_seed: WorldSeed(seed),
             chunk_loading_chan: channel(),
             loading_chunks: HashSet::new(),
-            threadpool: ThreadPool::new(8),
+            threadpool: ThreadPool::new(1),
         }
     }
 
@@ -66,14 +66,15 @@ impl World {
     // TODO: add an update methode to remove this garbage code
     pub fn load_around(&mut self, positions: Vec<WorldCoordinate>) {
         // get back chunks from generating thread
+        let mut received_chunks = 0;
         let (_, receiver) = &self.chunk_loading_chan;
-        match receiver.try_recv() {
-            Ok(chunk) => {
-                self.loading_chunks.remove(&chunk.coords);
-                self.chunks.insert(chunk.coords, chunk);
-            }
-            Err(_) => (),
-        };
+        while let Ok(chunk) = receiver.try_recv() {
+            self.loading_chunks.remove(&chunk.coords);
+            self.chunks.insert(chunk.coords, chunk);
+            received_chunks += 1;
+        }
+
+        println!("received {} chunks", received_chunks);
 
         // (un?)load chunks as the players move
         let mut chunks_to_load = HashSet::new();
@@ -90,7 +91,7 @@ impl World {
                             target_chunk.z + z as i64,
                         );
                         if !self.chunks.contains_key(&coords) {
-                            if counter < (LOAD_DISTANCE + 1) as u16 * 2 {
+                            if counter < (received_chunks + 1) * 2 {
                                 chunks_to_load.insert(coords);
                                 counter += 1;
                             }
