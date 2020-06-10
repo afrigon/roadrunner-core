@@ -3,7 +3,7 @@ mod multi_logger;
 mod stdout_logger;
 
 pub use file_logger::{FileLogger, FileLoggerOptions};
-pub use log::{debug, error, info, trace, warn, Level, Log};
+pub use log::{Level, Log};
 pub use stdout_logger::StdoutLogger;
 
 use log::LevelFilter;
