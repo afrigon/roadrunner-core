@@ -1,9 +1,9 @@
-use math::container::Area;
+use math::geometry::Rect;
 use math::random::noise::NoiseFn;
 use std::ops::Range;
 
 pub struct HeightMapOptions {
-    pub area: Area,
+    pub rect: Rect,
     pub range: Range<u8>,
 }
 
@@ -13,18 +13,21 @@ pub struct HeightMap {
 }
 
 impl HeightMap {
-    pub fn new<N: NoiseFn<[i64; 2]>>(area: Area, range: Range<u8>, noise: N) -> Self {
+    pub fn new<N: NoiseFn<[i64; 2]>>(rect: Rect, range: Range<u8>, noise: N) -> Self {
         let height = (range.end - range.start) as f64;
         Self {
-            values: area
-                .into_iter()
+            values: (0..rect.size.y as i64)
+                .flat_map(|y| {
+                    (0..rect.size.x as i64)
+                        .map(move |x| (rect.origin.x as i64 + x, rect.origin.y as i64 + y))
+                })
                 .map(|(x, y)| (noise.get([x, y]) * height) as u8 + range.start)
                 .collect(),
-            options: HeightMapOptions { area, range },
+            options: HeightMapOptions { rect, range },
         }
     }
 
     pub fn height(&self, x: u8, z: u8) -> u8 {
-        self.values[(x + z * self.options.area.width as u8) as usize]
+        self.values[(x + z * self.options.rect.size.x as u8) as usize]
     }
 }
