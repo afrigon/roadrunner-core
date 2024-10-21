@@ -122,7 +122,7 @@ impl WorldGenerator {
             LayeredNoiseOptions::new(6, 60.0, 0.50, 1.9, self.seed.0),
             10.0,
         );
-        //let height_map = HeightMap::new(area, 40..200, noise);
+        // let height_map = HeightMap::new(area, 40..200, noise);
         let height_map = HeightMap::new(area, 40..80, noise);
 
         let mut chunk = Chunk::new(coords);

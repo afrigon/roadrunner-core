@@ -1,4 +1,5 @@
-use crate::chunk::{Chunk, ChunkGrid, ChunkGridCoordinate, ChunkGroup};
+use crate::block::Block;
+use crate::chunk::{Chunk, ChunkGrid, ChunkGridCoordinate, ChunkGroup, CHUNK_DEPTH, CHUNK_WIDTH};
 use crate::utils::ThreadPool;
 use crate::world::generation::generate_chunk;
 use crate::world::generation::WorldSeed;
@@ -11,7 +12,7 @@ use std::sync::mpsc::{channel, Receiver, Sender};
 #[cfg(debug_assertions)]
 pub const LOAD_DISTANCE: u8 = 4;
 #[cfg(not(debug_assertions))]
-pub const LOAD_DISTANCE: u8 = 12;
+pub const LOAD_DISTANCE: u8 = 16;
 
 type ChunkLoadingChannel = (Sender<Chunk>, Receiver<Chunk>);
 
@@ -117,5 +118,16 @@ impl World {
         let west = self.chunks.get(&coords.west())?.clone();
 
         Some(ChunkGroup::new(current, north, south, east, west))
+    }
+
+    pub fn get_block(&self, x: isize, y: isize, z: isize) -> Option<Block> {
+        let world_coords = WorldCoordinate::new(x as f32, y as f32, z as f32);
+        let chunk_coords = ChunkGridCoordinate::from_world_coordinate(world_coords);
+
+        Some(self.chunks.get(&chunk_coords)?.block(
+            (x % CHUNK_WIDTH as isize) as usize,
+            y as usize,
+            (z % CHUNK_DEPTH as isize) as usize,
+        ))
     }
 }

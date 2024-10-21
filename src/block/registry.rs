@@ -23,4 +23,12 @@ impl BlockRegistry {
             false
         }
     }
+
+    pub fn is_solid(&self, id: u8) -> bool {
+        if let Some(p) = self.properties(id) {
+            p.solid
+        } else {
+            false
+        }
+    }
 }
